@@ -8,40 +8,24 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
         body { font-family: 'ZCOOL+KuaiLe', cursive; background-color: #000; color: white; overflow: hidden; margin: 0; }
-        
         .dandy-border { border: 6px solid #FFD700; box-shadow: 4px 4px 0px #000; }
         .btn-pink { background-color: #FF69B4; border-bottom: 6px solid #C71585; transition: all 0.1s; cursor: pointer; }
         .btn-pink:active { border-bottom-width: 0px; transform: translateY(6px); }
-
         .glitch-overlay { display: none; position: fixed; inset: 0; z-index: 50; pointer-events: none; background: radial-gradient(circle, rgba(255,0,0,0.4) 0%, rgba(255,0,0,0.8) 100%); animation: flash 0.1s infinite; }
         @keyframes flash { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        /* 卡通房子视觉设计 */
+        
         .toon-house { position: relative; width: 150px; transition: transform 0.3s; pointer-events: auto; }
         .room-active { transform: scale(1.15); filter: brightness(1.2); }
-
-        .house-roof { 
-            position: absolute; top: -55px; left: -5px; width: 160px; height: 60px;
-            background-color: inherit; filter: brightness(0.85);
-            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
-            border-bottom: 8px solid #FFD700; z-index: 2;
-        }
-
-        .house-body { 
-            position: relative; width: 100%; height: 160px;
-            background-color: inherit; border: 6px solid #FFD700; border-radius: 0 0 15px 15px;
-            box-shadow: 6px 6px 0 #000; display: flex; flex-direction: column; items: center; z-index: 1;
-        }
-
+        .house-roof { position: absolute; top: -55px; left: -5px; width: 160px; height: 60px; background-color: inherit; filter: brightness(0.85); clip-path: polygon(50% 0%, 0% 100%, 100% 100%); border-bottom: 8px solid #FFD700; z-index: 2; }
+        .house-body { position: relative; width: 100%; height: 160px; background-color: inherit; border: 6px solid #FFD700; border-radius: 0 0 15px 15px; box-shadow: 6px 6px 0 #000; display: flex; flex-direction: column; items: center; z-index: 1; }
         .chimney-brick-tall { position: absolute; top: -95px; right: 15px; width: 28px; height: 50px; background: repeating-linear-gradient(0deg, #8b4513 0px, #8b4513 8px, #a0522d 8px, #a0522d 10px); border: 4px solid #fff; border-radius: 5px 5px 0 0; z-index: 0; }
         .chimney-brick-short { position: absolute; top: -80px; right: 10px; width: 35px; height: 35px; background: repeating-linear-gradient(0deg, #8b4513 0px, #8b4513 8px, #a0522d 8px, #a0522d 10px); border: 4px solid #fff; border-radius: 5px 5px 0 0; z-index: 0; }
-
         .window-round { width: 45px; height: 45px; border-radius: 50%; border: 4px solid #fff; background: rgba(255,255,255,0.3); margin-top: 25px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2); }
         .window-square { width: 45px; height: 45px; border: 4px solid #fff; background: rgba(255,255,255,0.3); margin-top: 25px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2); }
 
         .toon-win { transform: scale(0) rotate(720deg); transition: all 0.8s ease-in; }
         .toon-wrong { animation: shake 0.5s; filter: sepia(1) saturate(10000%) hue-rotate(-50deg); }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-12px); } 75% { transform: translateX(12px); } }
     </style>
 </head>
 <body>
@@ -50,7 +34,7 @@
     <section id="scene1" class="h-screen w-full flex flex-col items-center justify-center bg-cover bg-center" style="background-image: url('Scene 1.png');">
         <div class="bg-black/80 p-8 dandy-border max-w-lg w-full text-center">
             <h1 class="text-4xl mb-6 text-yellow-400">词汇输入</h1>
-            <textarea id="wordInput" class="w-full h-32 p-4 text-black rounded mb-4" placeholder="输入本课词汇..."></textarea>
+            <textarea id="wordInput" class="w-full h-32 p-4 text-black rounded mb-4" placeholder="输入词汇..."></textarea>
             <button onclick="initGame()" class="btn-pink w-full py-4 text-2xl font-bold">开启冒险</button>
         </div>
     </section>
@@ -68,7 +52,7 @@
 
     <section id="scene3" class="hidden h-screen w-full relative bg-cover bg-center" style="background-image: url('Scene 3.png');">
         <div class="absolute top-0 w-full p-4 flex justify-between items-center bg-black/60 border-b-4 border-yellow-500 z-10">
-            <div class="text-xl font-bold">待分类: <span id="remCount">0</span></div>
+            <div class="text-xl font-bold">待处理: <span id="remCount">0</span></div>
             <div id="timer" class="text-5xl text-red-500 font-bold italic">10</div>
             <div class="text-xl font-bold">得分: <span id="score">0</span></div>
         </div>
@@ -76,7 +60,7 @@
         <div id="toonContainer" class="absolute bottom-10 left-1/2 -translate-x-1/2">
             <div id="activeToon" class="w-40 h-40 bg-contain bg-no-repeat bg-center cursor-grab relative" draggable="true">
                 <div id="statusLabel" class="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-2xl font-bold"></div>
-                <div id="wordLabel" class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-4 py-1 rounded-full border-2 border-yellow-500 text-xl font-bold"></div>
+                <div id="wordLabel" class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-4 py-1 rounded-full border-2 border-yellow-500 text-xl font-bold whitespace-nowrap"></div>
             </div>
         </div>
     </section>
@@ -92,7 +76,6 @@
     <script>
         const API_KEY = "AIzaSyDQ93HIITLTF8FMIKyggLN496c7gLw7Sf8";
         const TOONS = ['astro.png', 'boxten.png', 'brightney.png', 'connie.png', 'cosmo.png', 'finn.png', 'flutter.png', 'gigi.png', 'glisten.png', 'goob.png', 'looey.png', 'pebble.png', 'poppy-.png', 'razzle.png', 'rodger.png', 'scraps.png', 'shelly.png', 'shrimpo.png', 'sprout.png', 'teagan.png', 'tisha.png', 'toodles.png', 'vee.png'];
-
         const COLOR_MAP = { "红色": "#ff4d4d", "蓝色": "#4db8ff", "绿色": "#4dff88", "棕色": "#8b4513", "紫色": "#9370db", "黄色": "#ffff4d" };
 
         const LOCAL_KNOWLEDGE = {
@@ -100,7 +83,7 @@
             "家人": ["爷爷", "奶奶"],
             "天气": ["冬天", "夏天", "春天", "秋天", "冷", "热"],
             "件": ["毛衣", "衬衫", "外套", "大衣"],
-            "条": ["牛仔裤", "围巾", "领带", "皮带"],
+            "条": ["牛仔裤", "围巾", "领带", "皮带", "裤子"],
             "双": ["运动鞋", "袜子", "筷子", "凉鞋", "拖鞋"],
             "块": ["手表", "巧克力", "香皂"],
             "副": ["眼镜", "耳机", "手套", "耳环"]
@@ -111,7 +94,7 @@
             {name:'条', colorName:'蓝色', window:'round', chimney:'brick-short'},
             {name:'双', colorName:'棕色', window:'square', chimney:'none'}
         ];
-        let currentWord = "", score = 0, timerVal = 10, interval, audioCtx;
+        let currentWord = "", score = 0, timerVal = 10, interval, audioCtx, isProcessing = false;
 
         const Sound = {
             play(freq, type, dur) {
@@ -201,16 +184,31 @@
             toon.style.transform = "none";
             document.getElementById('wordLabel').innerText = currentWord;
             document.getElementById('statusLabel').innerText = "";
+            isProcessing = false;
             startTimer();
         }
 
         function startTimer() {
-            timerVal = 10; clearInterval(interval);
+            timerVal = 10;
+            clearInterval(interval);
             document.getElementById('timer').innerText = "10";
             interval = setInterval(() => {
-                timerVal--; 
+                timerVal--;
                 document.getElementById('timer').innerText = timerVal < 10 ? `0${timerVal}` : timerVal;
-                Sound.tick(); if(timerVal <= 0) triggerTwisted();
+                Sound.tick();
+                if(timerVal <= 0) {
+                    clearInterval(interval);
+                    triggerTimeout();
+                }
+            }, 1000);
+        }
+
+        function triggerTimeout() {
+            Sound.fail();
+            document.getElementById('glitch').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('glitch').style.display = 'none';
+                nextWord(); // 超时直接进入下一个
             }, 1000);
         }
 
@@ -226,22 +224,33 @@
         }
 
         async function handleDrop(cat) {
-            clearInterval(interval);
+            if(isProcessing) return;
+            isProcessing = true;
             const status = document.getElementById('statusLabel');
             status.innerText = "判定中...";
             status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-yellow-400 animate-pulse font-bold text-2xl";
+            
             const isCorrect = await checkLogic(currentWord, cat);
+            
             if(isCorrect) {
+                clearInterval(interval);
                 status.innerText = "✓ 正确!";
                 status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-green-400 font-bold text-3xl";
                 document.getElementById('activeToon').classList.add('toon-win');
-                score += 10; document.getElementById('score').innerText = score;
-                Sound.win(); setTimeout(nextWord, 800);
+                score += 10;
+                document.getElementById('score').innerText = score;
+                Sound.win();
+                setTimeout(nextWord, 800);
             } else {
-                status.innerText = "❌ 错误!";
+                status.innerText = "❌ 出错啦!";
                 status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-red-500 font-bold text-3xl";
                 document.getElementById('activeToon').classList.add('toon-wrong');
-                Sound.fail(); triggerTwisted();
+                Sound.fail();
+                setTimeout(() => {
+                    document.getElementById('activeToon').classList.remove('toon-wrong');
+                    status.innerText = "请重选！";
+                    isProcessing = false; // 允许重新选择
+                }, 1000);
             }
         }
 
@@ -258,19 +267,13 @@
             } catch { return false; }
         }
 
-        function triggerTwisted() {
-            clearInterval(interval); document.getElementById('glitch').style.display = 'block';
-            setTimeout(() => { document.getElementById('glitch').style.display = 'none'; endGame(false); }, 1200);
-        }
-
         function endGame(win) {
+            clearInterval(interval);
             showScene('scene4');
             const title = document.getElementById('resultTitle'), fx = document.getElementById('effectArea');
-            if(win) {
-                title.innerText = "闯关成功!"; title.className = "text-6xl mb-8 text-green-400"; fx.innerText = "🌸🌸🌸🌸🌸";
-            } else {
-                title.innerText = "继续加油!"; title.className = "text-6xl mb-8 text-red-600"; fx.innerText = "💪💪💪💪💪";
-            }
+            title.innerText = "挑战结束!";
+            title.className = "text-6xl mb-8 text-yellow-400";
+            fx.innerText = "最终得分: " + score;
         }
     </script>
 </body>
