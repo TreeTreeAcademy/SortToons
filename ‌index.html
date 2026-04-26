@@ -7,65 +7,63 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
-        body { font-family: 'ZCOOL+KuaiLe', cursive; background-color: #000; color: white; overflow: hidden; }
-        
-        /* 官方 UI 风格 [cite: 7, 11] */
+        body { font-family: 'ZCOOL+KuaiLe', cursive; background-color: #000; color: white; overflow: hidden; margin: 0; }
         .dandy-border { border: 6px solid #FFD700; box-shadow: 4px 4px 0px #000; }
-        .btn-pink { background-color: #FF69B4; border-bottom: 6px solid #C71585; transition: all 0.1s; cursor: pointer;}
+        .btn-pink { background-color: #FF69B4; border-bottom: 6px solid #C71585; transition: all 0.1s; cursor: pointer; }
         .btn-pink:active { border-bottom-width: 0px; transform: translateY(6px); }
-
-        /* Twisted 机制：红色故障滤镜 [cite: 32, 34] */
-        .glitch-overlay { display: none; position: fixed; inset: 0; z-index: 50; pointer-events: none;
-                          background: radial-gradient(circle, rgba(255,0,0,0.4) 0%, rgba(255,0,0,0.8) 100%);
-                          animation: flash 0.1s infinite; }
+        .glitch-overlay { display: none; position: fixed; inset: 0; z-index: 50; pointer-events: none; background: radial-gradient(circle, rgba(255,0,0,0.4) 0%, rgba(255,0,0,0.8) 100%); animation: flash 0.1s infinite; }
         @keyframes flash { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-
-        /* 房间动态反馈 [cite: 26] */
-        .room-target { transition: all 0.3s; background-size: cover; }
+        
+        /* 房间视觉要素 [cite: 18] */
+        .room-target { transition: all 0.3s; position: relative; overflow: hidden; }
         .room-active { transform: scale(1.1); filter: brightness(1.3) drop-shadow(0 0 20px #fff); }
+        
+        /* 窗户样式 */
+        .window-round { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #fff; background: rgba(255,255,255,0.3); margin-top: 10px; }
+        .window-square { width: 40px; height: 40px; border: 3px solid #fff; background: rgba(255,255,255,0.3); margin-top: 10px; }
+        
+        /* 烟囱样式 */
+        .chimney-tall { position: absolute; top: -15px; right: 20px; width: 15px; height: 30px; background: #555; border: 2px solid #fff; }
+        .chimney-short { position: absolute; top: -10px; right: 20px; width: 25px; height: 15px; background: #777; border: 2px solid #fff; }
 
-        /* 角色动画 [cite: 30, 31] */
         .toon-win { transform: scale(0) rotate(720deg); transition: all 0.8s ease-in; }
         .toon-wrong { animation: shake 0.5s; filter: sepia(1) saturate(10000%) hue-rotate(-50deg); }
         @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
     </style>
 </head>
 <body>
-
     <div id="glitch" class="glitch-overlay"></div>
 
     <section id="scene1" class="h-screen w-full flex flex-col items-center justify-center bg-cover bg-center" style="background-image: url('Scene 1.png');">
         <div class="bg-black/80 p-8 dandy-border max-w-lg w-full text-center">
             <h1 class="text-4xl mb-6 text-yellow-400">词汇输入</h1>
-            <textarea id="wordInput" class="w-full h-32 p-4 text-black rounded mb-4" placeholder="输入词汇，用空格或逗号分隔... [cite: 13]"></textarea>
-            <button onclick="initAudioAndGoTo2()" class="btn-pink w-full py-4 text-2xl">下一步</button>
+            <textarea id="wordInput" class="w-full h-32 p-4 text-black rounded mb-4" placeholder="输入词汇，用空格或逗号分隔..."></textarea>
+            <button onclick="initGame()" class="btn-pink w-full py-4 text-2xl">下一步</button>
         </div>
     </section>
 
     <section id="scene2" class="hidden h-screen w-full flex flex-col items-center justify-center bg-cover bg-center" style="background-image: url('Scene 2.png');">
-        <div class="bg-black/80 p-8 dandy-border max-w-2xl w-full">
-            <h1 class="text-3xl mb-4 text-yellow-400 text-center">自定义房间 [cite: 16]</h1>
-            <div id="roomList" class="space-y-4 max-h-60 overflow-y-auto mb-4 p-2"></div>
+        <div class="bg-black/85 p-6 dandy-border max-w-3xl w-full text-center">
+            <h1 class="text-3xl mb-4 text-yellow-400">设置房间要素 [cite: 16]</h1>
+            <div id="roomList" class="space-y-3 max-h-80 overflow-y-auto mb-4 p-2 text-left text-sm"></div>
             <div class="flex gap-4">
                 <button onclick="addRoom()" class="bg-blue-600 flex-1 py-2 rounded">添加房间 [cite: 19]</button>
-                <button onclick="startGame()" class="btn-pink flex-1 py-2 text-xl">开始挑战</button>
+                <button onclick="startGame()" class="btn-pink flex-1 py-2 text-xl">进入挑战</button>
             </div>
         </div>
     </section>
 
     <section id="scene3" class="hidden h-screen w-full relative bg-cover bg-center" style="background-image: url('Scene 3.png');">
-        <div class="absolute top-0 w-full p-4 flex justify-between items-center bg-black/60 border-b-4 border-yellow-500">
+        <div class="absolute top-0 w-full p-4 flex justify-between items-center bg-black/60 border-b-4 border-yellow-500 z-10">
             <div class="text-xl">待分类: <span id="remCount">0</span></div>
-            <div id="timer" class="text-5xl text-red-500 font-bold italic">05</div>
+            <div id="timer" class="text-5xl text-red-500 font-bold">05</div>
             <div class="text-xl">得分: <span id="score">0</span></div>
         </div>
-
-        <div id="gameRooms" class="absolute bottom-48 w-full flex justify-around px-6"></div>
-
+        <div id="gameRooms" class="absolute bottom-48 w-full flex justify-around px-4"></div>
         <div id="toonContainer" class="absolute bottom-10 left-1/2 -translate-x-1/2">
             <div id="activeToon" class="w-40 h-40 bg-contain bg-no-repeat bg-center cursor-grab relative" draggable="true">
                 <div id="statusLabel" class="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-2xl font-bold"></div>
-                <div id="wordLabel" class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-4 py-1 rounded-full border-2 border-yellow-500 text-xl"></div>
+                <div id="wordLabel" class="absolute -bottom-4 left-1/2 -translate-x-1/2 bg-black/70 px-4 py-1 rounded-full border-2 border-yellow-500 text-xl whitespace-nowrap"></div>
             </div>
         </div>
     </section>
@@ -79,62 +77,69 @@
     </section>
 
     <script>
-        const API_KEY = "YOUR_GEMINI_API_KEY"; // [cite: 6]
-        
-        // 自动识别你截图中的所有角色文件 
+        const API_KEY = "AIzaSyDQ93HIITLTF8FMIKyggLN496c7gLw7Sf8";
+
         const TOONS = [
             'astro.png', 'boxten.png', 'brightney.png', 'connie.png', 'cosmo.png', 
             'finn.png', 'flutter.png', 'gigi.png', 'glisten.png', 'goob.png', 
-            'looey.png', 'pebble.png', 'poppy.png', 'razzle.png', 'rodger.png', 
+            'looey.png', 'pebble.png', 'poppy-.png', 'razzle.png', 'rodger.png', 
             'scraps.png', 'shelly.png', 'shrimpo.png', 'sprout.png', 'teagan.png', 
             'tisha.png', 'toodles.png', 'vee.png'
         ];
 
-        let words = [], rooms = [{name:'水果', color:'#ff4d4d'}, {name:'天气', color:'#4db8ff'}];
+        // 默认分类要素：家人，天气，爱好 
+        let words = [];
+        let rooms = [
+            {name:'家人', color:'#ff4d4d', window:'round', chimney:'tall'},
+            {name:'天气', color:'#4db8ff', window:'square', chimney:'short'},
+            {name:'爱好', color:'#4dff88', window:'round', chimney:'none'}
+        ];
+        
         let currentWord = "", score = 0, timerVal = 5, interval;
 
-        // 音效系统 (Web Audio)
-        const AudioFX = {
-            ctx: null,
-            init() { this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-            play(freq, type, dur) {
-                const o = this.ctx.createOscillator(), g = this.ctx.createGain();
-                o.type = type; o.frequency.setValueAtTime(freq, this.ctx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.00001, this.ctx.currentTime + dur);
-                o.connect(g); g.connect(this.ctx.destination);
-                o.start(); o.stop(this.ctx.currentTime + dur);
-            },
-            tick() { this.play(200, 'square', 0.1); },
-            win() { this.play(600, 'triangle', 0.3); setTimeout(()=>this.play(800,'triangle',0.5),100); },
-            fail() { this.play(100, 'sawtooth', 1.5); }
-        };
-
-        function initAudioAndGoTo2() {
-            AudioFX.init();
+        function initGame() {
             const val = document.getElementById('wordInput').value;
             words = val.split(/[\s,，\n]+/).filter(w => w.trim());
             if(!words.length) return alert("请输入词汇！");
             renderRoomSettings();
-            document.getElementById('scene1').classList.add('hidden');
-            document.getElementById('scene2').classList.remove('hidden');
+            showScene('scene2');
+        }
+
+        function showScene(id) {
+            document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         }
 
         function renderRoomSettings() {
             const list = document.getElementById('roomList');
             list.innerHTML = rooms.map((r, i) => `
-                <div class="flex gap-2 items-center bg-zinc-800 p-3 rounded border border-gray-600">
-                    <input type="text" value="${r.name}" onchange="rooms[${i}].name=this.value" class="flex-1 p-1 text-black font-bold">
-                    <input type="color" value="${r.color}" onchange="rooms[${i}].color=this.value" class="w-12 h-10 cursor-pointer">
-                    <button onclick="rooms.splice(${i},1);renderRoomSettings()" class="text-red-500 font-bold px-2 text-2xl">×</button>
+                <div class="grid grid-cols-4 gap-2 items-center bg-zinc-800 p-2 rounded border border-gray-600">
+                    <input type="text" value="${r.name}" onchange="rooms[${i}].name=this.value" class="p-1 text-black font-bold rounded">
+                    <input type="color" value="${r.color}" onchange="rooms[${i}].color=this.value" class="w-full h-8 cursor-pointer">
+                    <select onchange="rooms[${i}].window=this.value" class="text-black p-1 rounded">
+                        <option value="round" ${r.window==='round'?'selected':''}>圆窗</option>
+                        <option value="square" ${r.window==='square'?'selected':''}>方窗</option>
+                        <option value="none" ${r.window==='none'?'selected':''}>无窗</option>
+                    </select>
+                    <div class="flex gap-1 items-center">
+                        <select onchange="rooms[${i}].chimney=this.value" class="text-black p-1 rounded flex-1">
+                            <option value="tall" ${r.chimney==='tall'?'selected':''}>长烟囱</option>
+                            <option value="short" ${r.chimney==='short'?'selected':''}>短烟囱</option>
+                            <option value="none" ${r.chimney==='none'?'selected':''}>无烟囱</option>
+                        </select>
+                        <button onclick="rooms.splice(${i},1);renderRoomSettings()" class="text-red-500 font-bold px-1 text-xl">×</button>
+                    </div>
                 </div>
             `).join('');
         }
 
-        function addRoom() { rooms.push({name:'新分类', color:'#ffffff'}); renderRoomSettings(); }
+        function addRoom() { 
+            rooms.push({name:'新分类', color:'#ffffff', window:'square', chimney:'none'}); 
+            renderRoomSettings(); 
+        }
 
         function startGame() {
-            document.getElementById('scene2').classList.add('hidden');
-            document.getElementById('scene3').classList.remove('hidden');
+            showScene('scene3');
             renderGameRooms();
             nextWord();
         }
@@ -142,27 +147,27 @@
         function renderGameRooms() {
             const container = document.getElementById('gameRooms');
             container.innerHTML = rooms.map(r => `
-                <div class="room-target w-44 h-60 dandy-border flex flex-col items-center justify-end pb-6" 
-                     data-name="${r.name}" style="background-color: ${r.color}66; border-color: ${r.color}">
-                    <span class="bg-black/80 px-4 py-1 rounded border-2 border-white text-lg">${r.name} [cite: 17]</span>
+                <div class="room-target w-36 h-52 dandy-border flex flex-col items-center justify-start pt-4" 
+                     data-name="${r.name}" style="background-color: ${r.color}cc; border-color: ${r.color}">
+                    ${r.chimney !== 'none' ? `<div class="chimney-${r.chimney}"></div>` : ''}
+                    ${r.window !== 'none' ? `<div class="window-${r.window}"></div>` : ''}
+                    <span class="absolute bottom-4 bg-black/80 px-2 py-1 rounded border border-white text-sm">${r.name}</span>
                 </div>
             `).join('');
-            setupInteraction();
+            setupDragAndDrop();
         }
 
         function nextWord() {
             if(!words.length) return endGame(true);
             currentWord = words.shift();
             document.getElementById('remCount').innerText = words.length;
-            
             const toon = document.getElementById('activeToon');
-            const randomImg = TOONS[Math.floor(Math.random() * TOONS.length)]; // 随机抽取角色 
-            
+            const randomImg = TOONS[Math.floor(Math.random() * TOONS.length)];
             toon.className = "w-40 h-40 bg-contain bg-no-repeat bg-center cursor-grab relative";
             toon.style.backgroundImage = `url('${randomImg}')`;
+            toon.style.transform = "none";
             document.getElementById('wordLabel').innerText = currentWord;
             document.getElementById('statusLabel').innerText = "";
-            
             startTimer();
         }
 
@@ -173,43 +178,39 @@
             interval = setInterval(() => {
                 timerVal--;
                 document.getElementById('timer').innerText = `0${timerVal}`;
-                AudioFX.tick();
-                if(timerVal <= 0) triggerTwisted(); // 倒计时结束触发 [cite: 33]
+                if(timerVal <= 0) triggerTwisted();
             }, 1000);
         }
 
-        function setupInteraction() {
+        function setupDragAndDrop() {
             const toon = document.getElementById('activeToon');
             const targets = document.querySelectorAll('.room-target');
-
             toon.ondragstart = (e) => { e.dataTransfer.setData('text', 'toon'); };
-            
             targets.forEach(t => {
                 t.ondragover = (e) => { e.preventDefault(); t.classList.add('room-active'); };
                 t.ondragleave = () => t.classList.remove('room-active');
-                t.ondrop = () => { t.classList.remove('room-active'); handleDrop(t.dataset.name); };
+                t.ondrop = (e) => { e.preventDefault(); t.classList.remove('room-active'); handleDrop(t.dataset.name); };
             });
         }
 
         async function handleDrop(cat) {
             clearInterval(interval);
             const status = document.getElementById('statusLabel');
-            status.innerText = "判定中... [cite: 27, 29]";
+            status.innerText = "判定中...";
             status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-yellow-400 animate-pulse font-bold text-2xl";
-
-            const isCorrect = await checkAI(currentWord, cat); // AI 语义判定 [cite: 6, 29]
-
+            const isCorrect = await checkAI(currentWord, cat);
             if(isCorrect) {
                 status.innerText = "✓ CORRECT!";
                 status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-green-400 font-bold text-3xl";
-                document.getElementById('activeToon').classList.add('toon-win'); // 成功反馈 [cite: 30]
-                AudioFX.win();
+                document.getElementById('activeToon').classList.add('toon-win');
+                score += 10;
+                document.getElementById('score').innerText = score;
                 setTimeout(nextWord, 800);
             } else {
-                status.innerText = "WRONG 出错啦! [cite: 31]";
+                status.innerText = "WRONG 出错啦!";
                 status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-red-500 font-bold text-3xl";
                 document.getElementById('activeToon').classList.add('toon-wrong');
-                triggerTwisted(); // 错误触发 [cite: 33]
+                triggerTwisted();
             }
         }
 
@@ -218,37 +219,34 @@
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{ parts: [{ text: `判定"${w}"是否属于"${c}"? 只能回"是"或"否"。` }] }] })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `判定"${w}"是否属于"${c}"? 只能回答"是"或"否"。` }] }] })
                 });
                 const d = await res.json();
                 return d.candidates[0].content.parts[0].text.includes("是");
-            } catch { return w.includes(c) || c.includes(w); }
+            } catch { return false; }
         }
 
         function triggerTwisted() {
             clearInterval(interval);
-            AudioFX.fail();
-            document.getElementById('glitch').style.display = 'block'; // 红色闪烁 [cite: 31, 34]
+            document.getElementById('glitch').style.display = 'block';
             setTimeout(() => {
                 document.getElementById('glitch').style.display = 'none';
                 endGame(false);
-            }, 2000);
+            }, 1500);
         }
 
         function endGame(win) {
-            document.getElementById('scene3').classList.add('hidden');
-            document.getElementById('scene4').classList.remove('hidden');
+            showScene('scene4');
             const title = document.getElementById('resultTitle');
             const fx = document.getElementById('effectArea');
-            
             if(win) {
-                title.innerText = "闯关成功! [cite: 36]";
-                title.className = "text-6xl mb-8 text-green-400 animate-bounce";
-                fx.innerText = "🌸🌸🌸 (鲜花特效) [cite: 36]";
+                title.innerText = "闯关成功!"; [cite: 36]
+                title.className = "text-6xl mb-8 text-green-400";
+                fx.innerText = "🌸🌸🌸🌸🌸"; [cite: 36]
             } else {
-                title.innerText = "继续加油! [cite: 37]";
+                title.innerText = "继续加油!"; [cite: 37]
                 title.className = "text-6xl mb-8 text-red-600";
-                fx.innerText = "💪💪💪 (打气特效) [cite: 37]";
+                fx.innerText = "💀💀💀💀💀"; [cite: 37]
             }
         }
     </script>
