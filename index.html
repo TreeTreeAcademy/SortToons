@@ -8,18 +8,43 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
         body { font-family: 'ZCOOL+KuaiLe', cursive; background-color: #000; color: white; overflow: hidden; margin: 0; }
+        
+        /* 官方 UI 风格 */
         .dandy-border { border: 6px solid #FFD700; box-shadow: 4px 4px 0px #000; }
         .btn-pink { background-color: #FF69B4; border-bottom: 6px solid #C71585; transition: all 0.1s; cursor: pointer; }
         .btn-pink:active { border-bottom-width: 0px; transform: translateY(6px); }
+
+        /* Twisted 机制：红色故障滤镜 */
         .glitch-overlay { display: none; position: fixed; inset: 0; z-index: 50; pointer-events: none; background: radial-gradient(circle, rgba(255,0,0,0.4) 0%, rgba(255,0,0,0.8) 100%); animation: flash 0.1s infinite; }
         @keyframes flash { 0%, 100% { opacity: 0.5; } 50% { opacity: 1; } }
-        
-        .room-target { transition: all 0.3s; position: relative; }
-        .room-active { transform: scale(1.1); filter: brightness(1.3) drop-shadow(0 0 20px #fff); }
-        .window-round { width: 35px; height: 35px; border-radius: 50%; border: 3px solid #fff; background: rgba(255,255,255,0.3); margin-top: 15px; }
-        .window-square { width: 35px; height: 35px; border: 3px solid #fff; background: rgba(255,255,255,0.3); margin-top: 15px; }
-        .chimney-tall { position: absolute; top: -20px; right: 15px; width: 12px; height: 35px; background: #444; border: 2px solid #fff; }
-        .chimney-short { position: absolute; top: -12px; right: 15px; width: 22px; height: 18px; background: #666; border: 2px solid #fff; }
+
+        /* --- 核心房型设计更新 --- */
+        .toon-house { position: relative; width: 150px; transition: transform 0.3s; pointer-events: auto; }
+        .room-active { transform: scale(1.15); filter: brightness(1.2); }
+
+        /* 卡通屋顶 */
+        .house-roof { 
+            position: absolute; top: -55px; left: -5px; width: 160px; height: 60px;
+            background-color: inherit; filter: brightness(0.85);
+            clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+            border-bottom: 8px solid #FFD700;
+            z-index: 2;
+        }
+
+        /* 房子身体 */
+        .house-body { 
+            position: relative; width: 100%; height: 160px;
+            background-color: inherit; border: 6px solid #FFD700; border-radius: 0 0 15px 15px;
+            box-shadow: 6px 6px 0 #000; display: flex; flex-direction: column; items: center; z-index: 1;
+        }
+
+        /* 砖块烟囱设计 */
+        .chimney-brick-tall { position: absolute; top: -95px; right: 15px; width: 28px; height: 50px; background: repeating-linear-gradient(0deg, #8b4513 0px, #8b4513 8px, #a0522d 8px, #a0522d 10px); border: 4px solid #fff; border-radius: 5px 5px 0 0; z-index: 0; }
+        .chimney-brick-short { position: absolute; top: -80px; right: 10px; width: 35px; height: 35px; background: repeating-linear-gradient(0deg, #8b4513 0px, #8b4513 8px, #a0522d 8px, #a0522d 10px); border: 4px solid #fff; border-radius: 5px 5px 0 0; z-index: 0; }
+
+        /* 卡通窗户 */
+        .window-round { width: 45px; height: 45px; border-radius: 50%; border: 4px solid #fff; background: rgba(255,255,255,0.3); margin-top: 25px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2); }
+        .window-square { width: 45px; height: 45px; border: 4px solid #fff; background: rgba(255,255,255,0.3); margin-top: 25px; box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2); }
 
         .toon-win { transform: scale(0) rotate(720deg); transition: all 0.8s ease-in; }
         .toon-wrong { animation: shake 0.5s; filter: sepia(1) saturate(10000%) hue-rotate(-50deg); }
@@ -32,17 +57,17 @@
     <section id="scene1" class="h-screen w-full flex flex-col items-center justify-center bg-cover bg-center" style="background-image: url('Scene 1.png');">
         <div class="bg-black/80 p-8 dandy-border max-w-lg w-full text-center">
             <h1 class="text-4xl mb-6 text-yellow-400">词汇输入</h1>
-            <textarea id="wordInput" class="w-full h-32 p-4 text-black rounded mb-4" placeholder="输入词汇..."></textarea>
+            <textarea id="wordInput" class="w-full h-32 p-4 text-black rounded mb-4" placeholder="请输入本课词汇..."></textarea>
             <button onclick="initGame()" class="btn-pink w-full py-4 text-2xl font-bold">开启冒险</button>
         </div>
     </section>
 
     <section id="scene2" class="hidden h-screen w-full flex flex-col items-center justify-center bg-cover bg-center" style="background-image: url('Scene 2.png');">
         <div class="bg-black/85 p-6 dandy-border max-w-4xl w-full text-center">
-            <h1 class="text-3xl mb-4 text-yellow-400">房间配置</h1>
+            <h1 class="text-3xl mb-4 text-yellow-400">配置卡通房子</h1>
             <div id="roomList" class="space-y-3 max-h-80 overflow-y-auto mb-4 p-2 text-left text-sm"></div>
             <div class="flex gap-4">
-                <button onclick="addRoom()" class="bg-blue-600 flex-1 py-2 rounded text-white font-bold">增加房间</button>
+                <button onclick="addRoom()" class="bg-blue-600 flex-1 py-2 rounded text-white font-bold text-lg">增加房间</button>
                 <button onclick="startGame()" class="btn-pink flex-1 py-2 text-xl font-bold">进入挑战</button>
             </div>
         </div>
@@ -54,7 +79,9 @@
             <div id="timer" class="text-5xl text-red-500 font-bold italic">05</div>
             <div class="text-xl font-bold">得分: <span id="score">0</span></div>
         </div>
-        <div id="gameRooms" class="absolute bottom-48 w-full flex justify-around px-4"></div>
+        
+        <div id="gameRooms" class="absolute bottom-48 w-full flex justify-around px-8"></div>
+
         <div id="toonContainer" class="absolute bottom-10 left-1/2 -translate-x-1/2">
             <div id="activeToon" class="w-40 h-40 bg-contain bg-no-repeat bg-center cursor-grab relative" draggable="true">
                 <div id="statusLabel" class="absolute -top-12 left-1/2 -translate-x-1/2 whitespace-nowrap text-2xl font-bold"></div>
@@ -67,7 +94,7 @@
         <div class="bg-black/90 p-12 dandy-border text-center">
             <h1 id="resultTitle" class="text-6xl mb-8"></h1>
             <div id="effectArea" class="text-4xl mb-8"></div>
-            <button onclick="location.reload()" class="btn-pink px-12 py-4 text-2xl font-bold">再来一次</button>
+            <button onclick="location.reload()" class="btn-pink px-12 py-4 text-2xl font-bold">回到大厅</button>
         </div>
     </section>
 
@@ -75,25 +102,24 @@
         const API_KEY = "AIzaSyDQ93HIITLTF8FMIKyggLN496c7gLw7Sf8";
         const TOONS = ['astro.png', 'boxten.png', 'brightney.png', 'connie.png', 'cosmo.png', 'finn.png', 'flutter.png', 'gigi.png', 'glisten.png', 'goob.png', 'looey.png', 'pebble.png', 'poppy-.png', 'razzle.png', 'rodger.png', 'scraps.png', 'shelly.png', 'shrimpo.png', 'sprout.png', 'teagan.png', 'tisha.png', 'toodles.png', 'vee.png'];
 
-        const COLOR_MAP = {
-            "红色": "#ff4d4d",
-            "蓝色": "#4db8ff",
-            "绿色": "#4dff88",
-            "棕色": "#8b4513",
-            "紫色": "#9370db",
-            "黄色": "#ffff4d"
-        };
+        const COLOR_MAP = { "红色": "#ff4d4d", "蓝色": "#4db8ff", "绿色": "#4dff88", "棕色": "#8b4513", "紫色": "#9370db", "黄色": "#ffff4d" };
 
+        // 最终补全本地词库分类
         const LOCAL_KNOWLEDGE = {
             "爱好": ["滑冰", "滑雪", "打羽毛球", "打排球", "打乒乓球", "钓鱼"],
             "家人": ["爷爷", "奶奶"],
-            "天气": ["冬天", "夏天", "春天", "秋天", "冷", "热"]
+            "天气": ["冬天", "夏天", "春天", "秋天", "冷", "热"],
+            "件": ["毛衣", "衬衫", "外套", "大衣"],
+            "条": ["牛仔裤", "围巾", "领带", "皮带"],
+            "双": ["运动鞋", "袜子", "筷子", "凉鞋", "拖鞋"],
+            "块": ["手表", "巧克力", "香皂"],
+            "副": ["眼镜", "耳机", "手套", "耳环"]
         };
 
         let words = [], rooms = [
-            {name:'家人', colorName:'红色', window:'round', chimney:'tall'},
-            {name:'天气', colorName:'蓝色', window:'square', chimney:'short'},
-            {name:'爱好', colorName:'绿色', window:'round', chimney:'none'}
+            {name:'件', colorName:'红色', window:'square', chimney:'brick-tall'},
+            {name:'条', colorName:'蓝色', window:'round', chimney:'brick-short'},
+            {name:'双', colorName:'棕色', window:'square', chimney:'none'}
         ];
         let currentWord = "", score = 0, timerVal = 5, interval, audioCtx;
 
@@ -140,8 +166,8 @@
                     </select>
                     <div class="flex gap-1 items-center">
                         <select onchange="rooms[${i}].chimney=this.value" class="text-black p-1 rounded font-bold flex-1">
-                            <option value="tall" ${r.chimney==='tall'?'selected':''}>长烟囱</option>
-                            <option value="short" ${r.chimney==='short'?'selected':''}>短烟囱</option>
+                            <option value="brick-tall" ${r.chimney==='brick-tall'?'selected':''}>高烟囱</option>
+                            <option value="brick-short" ${r.chimney==='brick-short'?'selected':''}>矮烟囱</option>
                             <option value="none" ${r.chimney==='none'?'selected':''}>无烟囱</option>
                         </select>
                         <button onclick="rooms.splice(${i},1);renderRoomSettings()" class="text-red-500 font-bold px-1 text-xl">×</button>
@@ -150,10 +176,7 @@
             `).join('');
         }
 
-        function addRoom() { 
-            rooms.push({name:'新分类', colorName:'黄色', window:'none', chimney:'none'}); 
-            renderRoomSettings(); 
-        }
+        function addRoom() { rooms.push({name:'新分类', colorName:'黄色', window:'none', chimney:'none'}); renderRoomSettings(); }
 
         function startGame() {
             showScene('scene3');
@@ -166,10 +189,13 @@
             container.innerHTML = rooms.map(r => {
                 const hexColor = COLOR_MAP[r.colorName] || "#ffffff";
                 return `
-                <div class="room-target w-36 h-52 dandy-border flex flex-col items-center pt-4" data-name="${r.name}" style="background-color: ${hexColor}cc; border-color: ${hexColor}">
+                <div class="toon-house room-target" data-name="${r.name}" style="background-color: ${hexColor}">
                     ${r.chimney!=='none'?`<div class="chimney-${r.chimney}"></div>`:''}
-                    ${r.window!=='none'?`<div class="window-${r.window}"></div>`:''}
-                    <span class="absolute bottom-4 bg-black/80 px-2 py-1 rounded border border-white text-sm font-bold">${r.name}</span>
+                    <div class="house-roof"></div>
+                    <div class="house-body">
+                        ${r.window!=='none'?`<div class="window-${r.window}"></div>`:''}
+                        <span class="absolute bottom-4 bg-black/80 px-2 py-1 rounded border border-white text-sm font-bold text-yellow-400">${r.name}</span>
+                    </div>
                 </div>`;
             }).join('');
             setupDragAndDrop();
@@ -189,14 +215,11 @@
         }
 
         function startTimer() {
-            timerVal = 5;
-            clearInterval(interval);
+            timerVal = 5; clearInterval(interval);
             document.getElementById('timer').innerText = "05";
             interval = setInterval(() => {
-                timerVal--;
-                document.getElementById('timer').innerText = `0${timerVal}`;
-                Sound.tick();
-                if(timerVal <= 0) triggerTwisted();
+                timerVal--; document.getElementById('timer').innerText = `0${timerVal}`;
+                Sound.tick(); if(timerVal <= 0) triggerTwisted();
             }, 1000);
         }
 
@@ -218,7 +241,6 @@
             status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-yellow-400 animate-pulse font-bold text-2xl";
             
             const isCorrect = await checkLogic(currentWord, cat);
-            
             if(isCorrect) {
                 status.innerText = "✓ 正确!";
                 status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-green-400 font-bold text-3xl";
@@ -239,34 +261,25 @@
                 const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{ parts: [{ text: `判定"${w}"是否属于"${c}"分类? 只回答"是"或"否"内容。` }] }] })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `判定词汇"${w}"是否属于"${c}"分类? 只回答"是"或"否"内容。` }] }] })
                 });
                 const d = await res.json();
-                const result = d.candidates[0].content.parts[0].text;
-                return result.includes("是");
+                return d.candidates[0].content.parts[0].text.includes("是");
             } catch { return false; }
         }
 
         function triggerTwisted() {
-            clearInterval(interval);
-            document.getElementById('glitch').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('glitch').style.display = 'none';
-                endGame(false);
-            }, 1200);
+            clearInterval(interval); document.getElementById('glitch').style.display = 'block';
+            setTimeout(() => { document.getElementById('glitch').style.display = 'none'; endGame(false); }, 1200);
         }
 
         function endGame(win) {
             showScene('scene4');
             const title = document.getElementById('resultTitle'), fx = document.getElementById('effectArea');
             if(win) {
-                title.innerText = "闯关成功!";
-                title.className = "text-6xl mb-8 text-green-400";
-                fx.innerText = "🌸🌸🌸🌸🌸";
+                title.innerText = "闯关成功!"; title.className = "text-6xl mb-8 text-green-400"; fx.innerText = "🌸🌸🌸🌸🌸";
             } else {
-                title.innerText = "继续加油!";
-                title.className = "text-6xl mb-8 text-red-600";
-                fx.innerText = "💪💪💪💪💪";
+                title.innerText = "继续加油!"; title.className = "text-6xl mb-8 text-red-600"; fx.innerText = "💪💪💪💪💪";
             }
         }
     </script>
