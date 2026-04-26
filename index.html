@@ -54,7 +54,7 @@
         <div class="absolute top-0 w-full p-4 flex justify-between items-center bg-black/60 border-b-4 border-yellow-500 z-10">
             <div class="text-xl font-bold">待处理: <span id="remCount">0</span></div>
             <div id="timer" class="text-5xl text-red-500 font-bold italic">10</div>
-            <div class="text-xl font-bold">得分: <span id="score">0</span></div>
+            <div class="text-xl font-bold">得分: <span id="score">0</span> / 100</div>
         </div>
         <div id="gameRooms" class="absolute bottom-48 w-full flex justify-around px-8"></div>
         <div id="toonContainer" class="absolute bottom-10 left-1/2 -translate-x-1/2">
@@ -68,7 +68,7 @@
     <section id="scene4" class="hidden h-screen w-full flex flex-col items-center justify-center bg-cover bg-center" style="background-image: url('Scene 4.png');">
         <div class="bg-black/90 p-12 dandy-border text-center">
             <h1 id="resultTitle" class="text-6xl mb-8"></h1>
-            <div id="effectArea" class="text-4xl mb-8"></div>
+            <div id="effectArea" class="text-4xl mb-8 text-yellow-400"></div>
             <button onclick="location.reload()" class="btn-pink px-12 py-4 text-2xl font-bold">回到大厅</button>
         </div>
     </section>
@@ -89,7 +89,8 @@
             "副": ["眼镜", "耳机", "手套", "耳环"]
         };
 
-        let words = [], rooms = [
+        let words = [], totalWordCount = 0, perWordScore = 0;
+        let rooms = [
             {name:'件', colorName:'红色', window:'square', chimney:'brick-tall'},
             {name:'条', colorName:'蓝色', window:'round', chimney:'brick-short'},
             {name:'双', colorName:'棕色', window:'square', chimney:'none'}
@@ -115,6 +116,10 @@
             const val = document.getElementById('wordInput').value;
             words = val.split(/[\s,，\n]+/).filter(w => w.trim());
             if(!words.length) return alert("请输入词汇！");
+            
+            totalWordCount = words.length;
+            perWordScore = 100 / totalWordCount; // 计算百分制分值
+            
             renderRoomSettings();
             showScene('scene2');
         }
@@ -175,7 +180,7 @@
         }
 
         function nextWord() {
-            if(!words.length) return endGame(true);
+            if(!words.length) return endGame();
             currentWord = words.shift();
             document.getElementById('remCount').innerText = words.length;
             const toon = document.getElementById('activeToon');
@@ -208,7 +213,7 @@
             document.getElementById('glitch').style.display = 'block';
             setTimeout(() => {
                 document.getElementById('glitch').style.display = 'none';
-                nextWord(); // 超时直接进入下一个
+                nextWord(); 
             }, 1000);
         }
 
@@ -237,8 +242,10 @@
                 status.innerText = "✓ 正确!";
                 status.className = "absolute -top-12 left-1/2 -translate-x-1/2 text-green-400 font-bold text-3xl";
                 document.getElementById('activeToon').classList.add('toon-win');
-                score += 10;
-                document.getElementById('score').innerText = score;
+                
+                score += perWordScore;
+                document.getElementById('score').innerText = Math.round(score);
+                
                 Sound.win();
                 setTimeout(nextWord, 800);
             } else {
@@ -249,7 +256,7 @@
                 setTimeout(() => {
                     document.getElementById('activeToon').classList.remove('toon-wrong');
                     status.innerText = "请重选！";
-                    isProcessing = false; // 允许重新选择
+                    isProcessing = false; 
                 }, 1000);
             }
         }
@@ -267,13 +274,13 @@
             } catch { return false; }
         }
 
-        function endGame(win) {
+        function endGame() {
             clearInterval(interval);
             showScene('scene4');
             const title = document.getElementById('resultTitle'), fx = document.getElementById('effectArea');
             title.innerText = "挑战结束!";
             title.className = "text-6xl mb-8 text-yellow-400";
-            fx.innerText = "最终得分: " + score;
+            fx.innerText = "最终总分: " + Math.round(score);
         }
     </script>
 </body>
